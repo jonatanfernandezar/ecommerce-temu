@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\Catalog\Repositories;
+namespace Domain\Catalog\Repositories;
 
 use App\Domain\Catalog\Entities\Product;
 
