@@ -15,9 +15,9 @@ final class ViewOrderHistoryService
     /**
      * @return OrderDTO[]
      */
-    public function execute(string $userId): array
+    public function execute(UserId $userId): array
     {
-        $orders = $this->orderRepository->findByBuyer((new UserId($userId))->value());
+        $orders = $this->orderRepository->findByBuyer($userId->value());
 
         return array_map(
             fn($order) => OrderDTO::fromDomain($order),

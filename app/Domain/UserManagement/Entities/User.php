@@ -6,7 +6,7 @@ use Domain\UserManagement\ValueObjects\UserId;
 use Domain\UserManagement\ValueObjects\Email;
 use Domain\UserManagement\ValueObjects\Password;
 use Domain\UserManagement\ValueObjects\UserRole;
-use Domain\UserManagement\Events\UserRegisteredEvent;
+use Domain\UserManagement\ValueObjects\UserStatus;
 
 final class User
 {
@@ -14,46 +14,52 @@ final class User
     private Email $email;
     private Password $password;
     private UserRole $role;
+    private UserStatus $status;
 
-    public function __construct(UserId $id, Email $email, Password $password, UserRole $role)
-    {
-        $this->id = $id;
-        $this->email = $email;
+    public function __construct(
+        UserId $id,
+        Email $email,
+        Password $password,
+        UserRole $role,
+        ?UserStatus $status = null
+    ) {
+        $this->id       = $id;
+        $this->email    = $email;
         $this->password = $password;
-        $this->role = $role;
+        $this->role     = $role;
+        $this->status   = $status ?? UserStatus::active();
     }
 
-    public function id(): UserId
-    {
-        return $this->id;
-    }
-
-    public function email(): Email
-    {
-        return $this->email;
-    }
-
-    public function password(): Password
-    {
-        return $this->password;
-    }
-
-    public function role(): UserRole
-    {
-        return $this->role;
-    }
+    public function id(): UserId { return $this->id; }
+    public function email(): Email { return $this->email; }
+    public function password(): Password { return $this->password; }
+    public function role(): UserRole { return $this->role; }
+    public function status(): UserStatus { return $this->status; }
 
     public function changeRole(UserRole $newRole): void
     {
         $this->role = $newRole;
-        // Podrías disparar UserRoleChangedEvent si quieres notificaciones
+        // Posible: disparar un UserRoleChangedEvent
     }
 
-    public static function register(Email $email, Password $password, UserRole $role): self
+    public function block(?string $reason = null): void
     {
-        $user = new self(UserId::generate(), $email, $password, $role);
-        // Disparar evento de usuario registrado
-        // event(new UserRegisteredEvent($user));
+        if ($this->status->isBlocked()) {
+            return; // ya bloqueado, evitamos lógica duplicada
+        }
+
+        $this->status = UserStatus::blocked();
+
+        // Aquí podrías guardar el motivo en otra entidad/tabla si lo necesitas
+        // o disparar un evento UserBlockedEvent con ese motivo
+    }
+
+    public static function register(
+        Email $email,
+        Password $password,
+        UserRole $role
+    ): self {
+        $user = new self(UserId::generate(), $email, $password, $role, UserStatus::active());
         return $user;
     }
 }

@@ -4,6 +4,7 @@ namespace Domain\UserManagement\Repositories;
 
 use Domain\UserManagement\Entities\User;
 use Domain\UserManagement\ValueObjects\UserId;
+use Domain\UserManagement\ValueObjects\Email;
 
 interface UserRepositoryInterface
 {
@@ -11,7 +12,7 @@ interface UserRepositoryInterface
 
     public function findById(UserId $id): ?User;
 
-    public function findByEmail(string $email): ?User;
+    public function findByEmail(Email $email): ?User;
 
     public function delete(User $user): void;
 }

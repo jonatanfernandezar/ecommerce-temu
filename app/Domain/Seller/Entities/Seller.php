@@ -40,4 +40,36 @@ class Seller
     {
         $this->status = SellerStatus::active();
     }
+
+    /**
+     * Approve the seller (domain logic).
+     *
+     * @throws \DomainException if seller is already approved or not in a pending state
+     */
+    public function approve(): void
+    {
+        if ($this->status->isApproved()) {
+            throw new \DomainException("Seller {$this->id->value()} is already approved.");
+        }
+
+        if (!$this->status->isPending()) {
+            throw new \DomainException("Only pending sellers can be approved.");
+        }
+
+        $this->status = SellerStatus::approved();
+    }
+
+    /**
+     * Reject the seller (domain logic).
+     *
+     * @throws \DomainException if seller already has a final state
+     */
+    public function reject(): void
+    {
+        if (!$this->status->isPending()) {
+            throw new \DomainException("Only pending sellers can be rejected.");
+        }
+
+        $this->status = SellerStatus::rejected();
+    }
 }

@@ -33,7 +33,7 @@ final class Order
     private string $currency;
     /**
      * @param OrderStatus[] $allowed
-    */
+     */
 
     public function __construct(
         OrderId $id,
@@ -56,15 +56,42 @@ final class Order
         return $order;
     }
 
-    public function id(): OrderId { return $this->id; }
-    public function buyerId(): UserId { return $this->buyerId; }
-    public function status(): OrderStatus { return $this->status; }
-    public function createdAt(): DateTimeImmutable { return $this->createdAt; }
-    public function paidAt(): ?DateTimeImmutable { return $this->paidAt; }
-    public function shippedAt(): ?DateTimeImmutable { return $this->shippedAt; }
-    public function deliveredAt(): ?DateTimeImmutable { return $this->deliveredAt; }
-    public function shippingAddress(): Address { return $this->shippingAddress; }
-    /** @return OrderItem[] */ public function items(): array { return $this->items; }
+    public function id(): OrderId
+    {
+        return $this->id;
+    }
+    public function buyerId(): UserId
+    {
+        return $this->buyerId;
+    }
+    public function status(): OrderStatus
+    {
+        return $this->status;
+    }
+    public function createdAt(): DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+    public function paidAt(): ?DateTimeImmutable
+    {
+        return $this->paidAt;
+    }
+    public function shippedAt(): ?DateTimeImmutable
+    {
+        return $this->shippedAt;
+    }
+    public function deliveredAt(): ?DateTimeImmutable
+    {
+        return $this->deliveredAt;
+    }
+    public function shippingAddress(): Address
+    {
+        return $this->shippingAddress;
+    }
+    /** @return OrderItem[] */ public function items(): array
+    {
+        return $this->items;
+    }
 
     public function addItem(ProductId $productId, Quantity $quantity, Money $unitPrice): OrderItem
     {
@@ -79,7 +106,7 @@ final class Order
         $this->assertStatus([OrderStatus::PENDING]);
         $this->items = array_values(array_filter(
             $this->items,
-            fn (OrderItem $i) => $i->id()->value() !== $itemId->value()
+            fn(OrderItem $i) => $i->id()->value() !== $itemId->value()
         ));
     }
 
@@ -121,6 +148,11 @@ final class Order
         $this->assertStatus([OrderStatus::PENDING, OrderStatus::PAID]);
         $this->status = OrderStatus::cancelled();
         // event(new OrderCancelled($this));
+    }
+
+    public function currency(): string
+    {
+        return $this->currency;
     }
 
     private function assertStatus(array $allowed): void

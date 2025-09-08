@@ -10,4 +10,6 @@ interface AdminRepositoryInterface
     public function save(Admin $admin): void;
     public function findById(AdminId $id): ?Admin;
     public function delete(AdminId $id): void;
+    /** @return Report[] */
+    public function findReportsByAdmin(AdminId $id): array;
 }

@@ -8,6 +8,7 @@ use Domain\Catalog\ValueObjects\ProductId;
 use Domain\Catalog\ValueObjects\CategoryId;
 use Domain\Catalog\ValueObjects\BrandId;
 use Domain\Shared\ValueObjects\Quantity;
+use Domain\Catalog\ValueObjects\ProductStatus;
 
 class Product
 {
@@ -20,6 +21,7 @@ class Product
     private ?BrandId $brandId;
     /** @var array<string, mixed> */
     private array $attributes;
+    private ProductStatus $status;
     /**
      * @param array<string, mixed> $attributes
      */
@@ -32,7 +34,8 @@ class Product
         Quantity $stock,
         CategoryId $categoryId,
         ?BrandId $brandId = null,
-        array $attributes = []
+        array $attributes = [],
+        ?ProductStatus $status = null
     ) {
         if (empty($id) || empty($name) || empty($categoryId)) {
             throw new \InvalidArgumentException("ID, name and categoryId are required.");
@@ -46,12 +49,26 @@ class Product
         $this->categoryId  = $categoryId;
         $this->brandId = $brandId;
         $this->attributes = $attributes;
+        $this->status     = $status ?? ProductStatus::active();
 
         // Aquí podrías despachar un evento de dominio si usas un event bus
         // new ProductCreatedEvent($this->id, $this->name);
     }
 
-    // Métodos de negocio
+    // Métodos de negocio.
+    public function remove(): void
+    {
+        if ($this->status->isRemoved()) {
+            return; // ya eliminado, evitamos duplicados
+        }
+        $this->status = ProductStatus::removed();
+    }
+
+    public function status(): ProductStatus
+    {
+        return $this->status;
+    }
+
     public function changePrice(Price $newPrice): void
     {
         $this->price = $newPrice;
