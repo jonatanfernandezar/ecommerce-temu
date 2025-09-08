@@ -30,6 +30,11 @@ final class Price
         return $this->currency;
     }
 
+    public static function fromFloat(float $amount, string $currency = 'USD'): self
+    {
+        return new self($amount, $currency);
+    }
+
     // ✅ Helper para convertir directamente a Money
     public function toMoney(): \Domain\Shared\ValueObjects\Money
     {

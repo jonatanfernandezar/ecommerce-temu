@@ -12,6 +12,10 @@ final class CartDTO
     public int $totalQuantity;
     public float $totalAmount; // unidades principales
 
+    /**
+     * @param CartItemDTO[] $items
+    */
+
     public function __construct(array $items, int $totalQuantity, float $totalAmount)
     {
         $this->items = $items;

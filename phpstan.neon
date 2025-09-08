@@ -1,0 +1,26 @@
+# phpstan.neon
+includes:
+    - vendor/nunomaduro/larastan/extension.neon
+
+parameters:
+    level: max   # Nivel más estricto
+
+    paths:
+        - app
+        - app/Application
+        - app/Domain
+        - app/Http
+        - app/Infrastructure
+        - app/Interfaces
+        - app/Providers
+
+    ignoreErrors:
+        # Agrega aquí expresiones regulares si necesitas ignorar errores específicos
+        # - '#Call to an undefined method .*#'
+
+    # 🔍 Reglas estrictas recomendadas
+    inferPrivatePropertyTypeFromConstructor: true
+    treatPhpDocTypesAsCertain: true
+
+    # 🔧 Ajustes de errores
+    reportUnmatchedIgnoredErrors: true

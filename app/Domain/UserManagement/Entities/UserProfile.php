@@ -39,10 +39,10 @@ class UserProfile
         return $this->phone;
     }
 
-    public function updateProfile(string $name, string $email, ?string $address, ?string $phone): void
+    public function updateProfile(?string $name, ?string $email, ?string $address, ?string $phone): void
     {
-        $this->name = $name;
-        $this->email = $email;
+        $this->name = $name ?? $this->name;
+        $this->email = $email ?? $this->email;
         $this->address = $address;
         $this->phone = $phone;
     }

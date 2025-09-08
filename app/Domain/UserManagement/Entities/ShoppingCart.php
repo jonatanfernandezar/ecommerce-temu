@@ -15,7 +15,10 @@ final class ShoppingCart
     /** @var CartItem[] */
     private array $items;
     private \DateTimeImmutable $updatedAt;
-
+    /**
+     * @param CartItem[] $items
+    */
+    
     public function __construct(CartId $id, UserId $userId, array $items = [])
     {
         $this->id = $id;

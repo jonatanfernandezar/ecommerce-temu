@@ -2,7 +2,7 @@
 
 namespace Domain\Admin\ValueObjects;
 
-use Domain\Shared\Exceptions\DomainException;
+use Domain\Shared\Exceptions\InvalidAdminRoleException;
 
 class AdminRole
 {
@@ -14,7 +14,7 @@ class AdminRole
     public function __construct(string $value)
     {
         if (!in_array($value, [self::ADMIN, self::SUPER_ADMIN], true)) {
-            throw new DomainException("Invalid admin role: {$value}");
+            throw new InvalidAdminRoleException($value);
         }
         $this->value = $value;
     }

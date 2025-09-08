@@ -9,6 +9,10 @@ final class OrderDTO
     /** @var OrderItemDTO[] */
     public array $items;
 
+    /**
+     * @param OrderItemDTO[] $items
+    */
+
     public function __construct(
         public readonly string $orderId,
         public readonly string $userId,

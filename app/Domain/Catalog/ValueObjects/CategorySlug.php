@@ -21,7 +21,13 @@ final class CategorySlug
 
     public static function fromName(CategoryName $name): self
     {
-        $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $name->value())));
+        $raw = preg_replace('/[^A-Za-z0-9-]+/', '-', $name->value());
+
+        if ($raw === null) {
+            throw new \InvalidArgumentException("Failed to generate slug from CategoryName.");
+        }
+
+        $slug = strtolower(trim($raw));
         return new self($slug);
     }
 

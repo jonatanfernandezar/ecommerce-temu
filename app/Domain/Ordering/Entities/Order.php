@@ -31,6 +31,9 @@ final class Order
     private ?DateTimeImmutable $shippedAt = null;
     private ?DateTimeImmutable $deliveredAt = null;
     private string $currency;
+    /**
+     * @param OrderStatus[] $allowed
+    */
 
     public function __construct(
         OrderId $id,

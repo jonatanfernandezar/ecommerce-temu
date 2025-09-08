@@ -2,7 +2,7 @@
 
 namespace Domain\Admin\ValueObjects;
 
-use Domain\Shared\Exceptions\DomainException;
+use Domain\Shared\Exceptions\InvalidAdminIdException;
 use Ramsey\Uuid\Uuid;
 
 class AdminId
@@ -12,7 +12,7 @@ class AdminId
     public function __construct(string $value)
     {
         if (!Uuid::isValid($value)) {
-            throw new DomainException("Invalid AdminId");
+            throw new InvalidAdminIdException($value);
         }
         $this->value = $value;
     }
