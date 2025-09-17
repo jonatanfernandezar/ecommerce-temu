@@ -12,6 +12,8 @@ return Application::configure(basePath: dirname(__DIR__))
             require base_path('routes/UserManagement/user.php');
             require base_path('routes/Admin/admin.php');
             require base_path('routes/Seller/seller.php');
+            require base_path('routes/Ordering/ordering.php');
+            require base_path('routes/Catalog/catalog.php');
         },
         commands: __DIR__.'/../routes/console.php',
         health: '/up',

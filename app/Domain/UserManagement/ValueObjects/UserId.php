@@ -11,15 +11,18 @@ final class UserId
 
     public function __construct(string $value)
     {
-        if (!Uuid::isValid($value)) {
-            throw new InvalidArgumentException("Invalid UUID for UserId.");
+        if ($value <= 0) {
+            throw new InvalidArgumentException("Invalid ID for UserId.");
         }
         $this->value = $value;
     }
 
+     /**
+     * En autoincrement, no se genera manualmente.
+     */
     public static function generate(): self
     {
-        return new self(Uuid::uuid4()->toString());
+        throw new \LogicException("UserId is auto-incremented by the database.");
     }
 
     public function value(): string

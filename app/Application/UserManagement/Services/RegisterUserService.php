@@ -8,8 +8,8 @@ use Domain\UserManagement\Repositories\UserRepositoryInterface;
 use Domain\UserManagement\Entities\User;
 use Domain\UserManagement\ValueObjects\Email;
 use Domain\UserManagement\ValueObjects\Password;
-use Domain\UserManagement\ValueObjects\UserId;
 use Domain\UserManagement\ValueObjects\UserRole;
+use Domain\UserManagement\ValueObjects\Name;
 
 final class RegisterUserService
 {
@@ -19,7 +19,8 @@ final class RegisterUserService
     {
         // Crear entidad de dominio
         $user = new User(
-            UserId::generate(),
+            null, // ID será asignado por la base de datos
+            new Name($command->name),
             new Email($command->email),
             new Password($command->password),
             new UserRole($command->role)

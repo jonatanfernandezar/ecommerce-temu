@@ -34,6 +34,6 @@ final class RegisterUserController
 
         $userDTO = $this->service->execute($command);
 
-        return response()->json($userDTO, 201);
+        return response()->json($userDTO->toArray(), 201);
     }
 }

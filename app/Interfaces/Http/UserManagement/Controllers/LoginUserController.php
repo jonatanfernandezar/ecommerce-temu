@@ -2,37 +2,25 @@
 
 namespace App\Interfaces\Http\UserManagement\Controllers;
 
-use Application\UserManagement\Services\LoginUserService;
-use Application\UserManagement\Commands\LoginUserCommand;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-
-final class LoginUserController
+use Application\UserManagement\Commands\LoginUserCommand;
+use Application\UserManagement\Services\LoginUserService;
+class LoginUserController
 {
-    private LoginUserService $service;
+    public function __construct(private LoginUserService $loginUserService) {}
 
-    public function __construct(LoginUserService $service)
+    public function __invoke(Request $request)
     {
-        $this->service = $service;
-    }
-
-    public function __invoke(Request $request): JsonResponse
-    {
-        $data = $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required|string',
-        ]);
-
         $command = new LoginUserCommand(
-            $data['email'],
-            $data['password']
+            email: $request->input('email'),
+            password: $request->input('password')
         );
 
-        $token = $this->service->execute($command);
+        $token = $this->loginUserService->execute($command);
 
         return response()->json([
             'access_token' => $token,
-            'token_type'   => 'Bearer'
+            'token_type'   => 'Bearer',
         ]);
     }
 }
