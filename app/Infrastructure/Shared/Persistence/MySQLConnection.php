@@ -5,39 +5,48 @@ namespace Infrastructure\Shared\Persistence;
 use PDO;
 use PDOException;
 use Dotenv\Dotenv;
+use Illuminate\Support\Facades\Log; // 👈 importar Log de Laravel
 
-final class MySQLConnection
+class MySQLConnection
 {
-    private static ?PDO $connection = null;
+    private PDO $connection;
 
-    private function __construct() {}
-
-    public static function getConnection(): PDO
+    public function __construct()
     {
-        if (self::$connection === null) {
-            // Cargar variables de entorno desde la raíz del proyecto
-            $dotenv = Dotenv::createImmutable(__DIR__ . '/../../../../'); 
-            $dotenv->safeLoad();
-
-            $host = $_ENV['DB_HOST'] ?? '127.0.0.1';
-            $port = $_ENV['DB_PORT'] ?? '3306';
-            $db   = $_ENV['DB_DATABASE'] ?? 'ecommerce_temuv2';
-            $user = $_ENV['DB_USERNAME'] ?? 'root';
-            $pass = $_ENV['DB_PASSWORD'] ?? '';
-
-            $dsn = "mysql:host={$host};port={$port};dbname={$db};charset=utf8mb4";
-
-            try {
-                self::$connection = new PDO($dsn, $user, $pass, [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES => false,
-                ]);
-            } catch (PDOException $e) {
-                throw new \RuntimeException('Could not connect to the database: ' . $e->getMessage());
-            }
+        // Solo cargar .env si aún no está cargado
+        if (!isset($_ENV['DB_DATABASE'])) {
+            $dotenv = Dotenv::createImmutable(base_path());
+            $dotenv->load();
         }
 
-        return self::$connection;
+        $host = $_ENV['DB_HOST'] ?? '127.0.0.1';
+        $port = $_ENV['DB_PORT'] ?? '3306';
+        $db   = $_ENV['DB_DATABASE'] ?? 'ecommerce_temu'; // 👈 default corregido
+        $user = $_ENV['DB_USERNAME'] ?? 'root';
+        $pass = $_ENV['DB_PASSWORD'] ?? '';
+
+        $dsn = "mysql:host={$host};port={$port};dbname={$db};charset=utf8mb4";
+
+        try {
+            $this->connection = new PDO($dsn, $user, $pass, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false,
+            ]);
+
+            Log::info("✅ Conectado a DB", [
+                'db'   => $db,
+                'host' => $host,
+                'user' => $user,
+            ]);
+        } catch (PDOException $e) {
+            Log::error("❌ Error conexión DB: " . $e->getMessage());
+            throw new \RuntimeException('Could not connect to the database: ' . $e->getMessage());
+        }
+    }
+
+    public function getConnection(): PDO
+    {
+        return $this->connection;
     }
 }

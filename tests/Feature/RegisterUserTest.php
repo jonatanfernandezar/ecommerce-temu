@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use PHPUnit\Framework\Attributes\Test;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -9,10 +10,10 @@ class RegisterUserTest extends TestCase
 {
     use RefreshDatabase; // se asegura de correr migraciones en memoria
 
-    /** @test */
+    #[Test]
     public function a_user_can_register()
     {
-        $response = $this->postJson('/users/register', [
+        $response = $this->postJson('/api/users/register', [
             'name' => 'John Doe',
             'email' => 'john@example.com',
             'password' => 'secret123',

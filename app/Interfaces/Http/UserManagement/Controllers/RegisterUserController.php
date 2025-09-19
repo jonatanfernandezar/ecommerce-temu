@@ -6,6 +6,7 @@ use Application\UserManagement\Services\RegisterUserService;
 use Application\UserManagement\Commands\RegisterUserCommand;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 final class RegisterUserController
 {
@@ -18,6 +19,7 @@ final class RegisterUserController
 
     public function __invoke(Request $request): JsonResponse
     {
+        Log::info("📥 Llega petición RegisterUserController", $request->all());
         $data = $request->validate([
             'name'     => 'required|string|max:255',
             'email'    => 'required|email',
@@ -25,14 +27,17 @@ final class RegisterUserController
             'role'     => 'required|string|in:client,seller,admin',
         ]);
 
+        Log::info("✅ Datos validados", $data);
+
         $command = new RegisterUserCommand(
             $data['name'],
             $data['email'],
             $data['password'],
             $data['role']
         );
-
+        Log::info("📦 Command creado", (array) $command);
         $userDTO = $this->service->execute($command);
+        Log::info("📤 Respuesta desde Service (UserDTO)", $userDTO->toArray());
 
         return response()->json($userDTO->toArray(), 201);
     }

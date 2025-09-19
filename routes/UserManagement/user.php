@@ -6,7 +6,6 @@ use App\Interfaces\Http\UserManagement\Controllers\LoginUserController;
 use App\Interfaces\Http\UserManagement\Controllers\UserProfileController;
 use App\Interfaces\Http\UserManagement\Controllers\CartController;
 use App\Interfaces\Http\UserManagement\Controllers\OrderController;
-//use Application\UserManagement\Services\LoginUserController;
 
 Route::prefix('users')->group(function () {
     // Registro y login

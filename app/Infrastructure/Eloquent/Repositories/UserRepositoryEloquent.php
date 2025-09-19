@@ -12,16 +12,31 @@ final class UserRepositoryEloquent implements UserRepositoryInterface
 {
     public function save(User $user): void
     {
-        EloquentUser::updateOrCreate(
-            ['id' => $user->id()->value()],
-            [
+        if ($user->id() === null) {
+            // Crear nuevo usuario
+            $eloquentUser = EloquentUser::create([
                 'name'     => $user->name()->value(),
                 'email'    => $user->email()->value(),
                 'password' => $user->password()->hash(),
                 'role'     => $user->role()->value(),
                 'status'   => $user->status()->value(),
-            ]
-        );
+            ]);
+
+            // Asignar ID generado al dominio
+            $user->assignId(new UserId((string) $eloquentUser->id));
+        } else {
+            // Actualizar usuario existente
+            $eloquentUser = EloquentUser::updateOrCreate(
+                ['id' => $user->id()->value()],
+                [
+                    'name'     => $user->name()->value(),
+                    'email'    => $user->email()->value(),
+                    'password' => $user->password()->hash(),
+                    'role'     => $user->role()->value(),
+                    'status'   => $user->status()->value(),
+                ]
+            );
+        }
     }
 
     public function findById(UserId $id): ?User
@@ -33,7 +48,21 @@ final class UserRepositoryEloquent implements UserRepositoryInterface
     public function findByEmail(Email $email): ?User
     {
         $eloquentUser = EloquentUser::where('email', $email->value())->first();
-        return $eloquentUser?->toDomain();
+        if (!$eloquentUser) return null;
+
+        $user = $eloquentUser->toDomain();
+
+        // Sobrescribir el Password para usar hash de DB
+        $user = new User(
+            $user->id(),
+            $user->name(),
+            $user->email(),
+            \Domain\UserManagement\ValueObjects\Password::fromHash($eloquentUser->password),
+            $user->role(),
+            $user->status()
+        );
+
+        return $user;
     }
 
     public function delete(User $user): void

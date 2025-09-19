@@ -7,28 +7,39 @@ use Application\UserManagement\DTO\UserDTO;
 use Domain\UserManagement\Repositories\UserRepositoryInterface;
 use Domain\UserManagement\Exceptions\UserDomainException;
 use Domain\UserManagement\ValueObjects\Email;
+use Firebase\JWT\JWT;
 
 final class LoginUserService
 {
     public function __construct(private UserRepositoryInterface $userRepository) {}
 
-    public function execute(LoginUserCommand $command): UserDTO
+    public function execute(LoginUserCommand $command): array
     {
-        // Crear VO Email a partir del string del comando
-        $email = new Email($command->email);
-        // Buscar usuario por email
-        $user = $this->userRepository->findByEmail($email);
+        $user = $this->userRepository->findByEmail(new Email($command->email));
 
-        if (!$user) {
-            throw new UserDomainException("User not found with email {$command->email}");
-        }
-
-        // Validar contraseña usando el VO Password
-        if (!$user->password()->verify($command->password)) {
+        if (!$user || !$user->password()->verify($command->password)) {
             throw new UserDomainException("Invalid credentials");
         }
 
-        // Retornar DTO
-        return UserDTO::fromDomain($user);
+        // Cargar config JWT
+        $secret = config('jwt.secret');
+        $algo   = config('jwt.algo', 'HS256');
+        $ttl    = (int) config('jwt.ttl', 60); // minutos
+
+        $payload = [
+            'sub'   => $user->id()->value(),
+            'email' => $user->email()->value(),
+            'role'  => $user->role()->value(),
+            'iat'   => time(),
+            'exp'   => time() + ($ttl * 60), // convertir minutos a segundos
+        ];
+
+        $jwt = JWT::encode($payload, $secret, $algo);
+
+        return [
+            'access_token' => $jwt,
+            'token_type'   => 'Bearer',
+            'expires_in'   => $ttl * 60, // en segundos
+        ];
     }
 }

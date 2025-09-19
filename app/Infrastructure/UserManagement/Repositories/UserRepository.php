@@ -8,44 +8,78 @@ use Domain\UserManagement\ValueObjects\UserId;
 use Domain\UserManagement\ValueObjects\Email;
 use Domain\UserManagement\Repositories\UserRepositoryInterface;
 use Infrastructure\Shared\Persistence\MySQLConnection;
+use Illuminate\Support\Facades\Log;
+use Domain\UserManagement\ValueObjects\Password;
+use Domain\UserManagement\ValueObjects\UserRole;
+use Domain\UserManagement\ValueObjects\UserStatus;
 use PDO;
 use PDOException;
 
 final class UserRepository implements UserRepositoryInterface
 {
-    public function __construct(private MySQLConnection $connection) {}
+    private PDO $pdo;
+
+    public function __construct(MySQLConnection $connection)
+    {
+        $this->pdo = $connection->getConnection();
+    }
 
     public function save(User $user): void
     {
-        $pdo = $this->connection::getConnection();
+        $now = (new \DateTime())->format('Y-m-d H:i:s');
 
-        $sql = "INSERT INTO users (id, name, email, password, role, status)
-        VALUES (:id, :name, :email, :password, :role, :status)
-        ON DUPLICATE KEY UPDATE
-            name = :name,
-            email = :email,
-            password = :password,
-            role = :role,
-            status = :status";
+        $sql = "INSERT INTO users (name, email, password, role, status, created_at, updated_at)
+            VALUES (:name, :email, :password, :role, :status, :created_at, :updated_at)
+            ON DUPLICATE KEY UPDATE
+                name = VALUES(name),
+                email = VALUES(email),
+                password = VALUES(password),
+                role = VALUES(role),
+                status = VALUES(status),
+                updated_at = VALUES(updated_at)";
 
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-            ':id'       => $user->id()->value(),
-            ':name'     => $user->name()->value(),
-            ':email'    => $user->email()->value(),
-            ':password' => $user->password()->hash(),
-            ':role'     => $user->role()->value(),
-            ':status'   => $user->status()->value(),
-        ]);
+        try {
+            Log::info("📝 Ejecutando query UserRepository::save", [
+                'sql' => $sql,
+                'params' => [
+                    'name'       => $user->name()->value(),
+                    'email'      => $user->email()->value(),
+                    'password'   => $user->password()->hash(),
+                    'role'       => $user->role()->value(),
+                    'status'     => $user->status()->value(),
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]
+            ]);
+
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([
+                ':name'       => $user->name()->value(),
+                ':email'      => $user->email()->value(),
+                ':password'   => $user->password()->hash(),
+                ':role'       => $user->role()->value(),
+                ':status'     => $user->status()->value(),
+                ':created_at' => $now,
+                ':updated_at' => $now,
+            ]);
+
+            $lastId = (int) $this->pdo->lastInsertId();
+            Log::info("🔑 lastInsertId devuelto por PDO", ['lastId' => $lastId]);
+
+            if ($lastId > 0) {
+                $user->assignId(new UserId($lastId));
+            }
+        } catch (PDOException $e) {
+            Log::error("❌ Error en save(): " . $e->getMessage());
+            throw $e;
+        }
     }
 
     public function findById(UserId $id): ?User
     {
-        $pdo = $this->connection::getConnection();
-
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE id = :id");
+        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE id = :id");
         $stmt->execute([':id' => $id->value()]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $row = $stmt->fetch();
 
         if (!$row) return null;
 
@@ -53,19 +87,17 @@ final class UserRepository implements UserRepositoryInterface
             new UserId($row['id']),
             new Name($row['name']),
             new Email($row['email']),
-            new \Domain\UserManagement\ValueObjects\Password($row['password']), // Si guardaste hashed, adapta constructor
-            new \Domain\UserManagement\ValueObjects\UserRole($row['role']),
-            new \Domain\UserManagement\ValueObjects\UserStatus($row['status'])
+            Password::fromHash($row['password']), // 👈 CORREGIDO
+            UserRole::fromString($row['role']),
+            UserStatus::fromString($row['status'])
         );
     }
 
     public function findByEmail(Email $email): ?User
     {
-        $pdo = $this->connection::getConnection();
-
-        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = :email");
+        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE email = :email");
         $stmt->execute([':email' => $email->value()]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $row = $stmt->fetch();
 
         if (!$row) return null;
 
@@ -73,17 +105,15 @@ final class UserRepository implements UserRepositoryInterface
             new UserId($row['id']),
             new Name($row['name']),
             new Email($row['email']),
-            new \Domain\UserManagement\ValueObjects\Password($row['password']),
-            new \Domain\UserManagement\ValueObjects\UserRole($row['role']),
-            new \Domain\UserManagement\ValueObjects\UserStatus($row['status'])
+            Password::fromHash($row['password']), // 👈 CORREGIDO
+            UserRole::fromString($row['role']),
+            UserStatus::fromString($row['status'])
         );
     }
 
     public function delete(User $user): void
     {
-        $pdo = $this->connection::getConnection();
-
-        $stmt = $pdo->prepare("DELETE FROM users WHERE id = :id");
+        $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = :id");
         $stmt->execute([':id' => $user->id()->value()]);
     }
 }

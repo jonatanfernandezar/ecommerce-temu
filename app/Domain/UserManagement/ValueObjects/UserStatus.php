@@ -24,6 +24,12 @@ final class UserStatus
     public static function active(): self { return new self(self::ACTIVE); }
     public static function blocked(): self { return new self(self::BLOCKED); }
 
+    // --- Constructor desde string (DB) ---
+    public static function fromString(string $value): self
+    {
+        return new self($value);
+    }
+
     // --- Checks ---
     public function isActive(): bool { return $this->value === self::ACTIVE; }
     public function isBlocked(): bool { return $this->value === self::BLOCKED; }
@@ -36,3 +42,4 @@ final class UserStatus
         return $this->value === $other->value;
     }
 }
+

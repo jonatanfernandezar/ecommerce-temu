@@ -41,9 +41,9 @@ class User extends Authenticatable
             new UserId($this->id),
             new Name($this->name),
             new Email($this->email),
-            new Password($this->password), // hashed
+            Password::fromHash($this->password), // hashed
             new UserRole($this->role),
-            new UserStatus($this->status)
+            $this->status === 'active' ? UserStatus::active() : UserStatus::blocked()
         );
     }
 
