@@ -3,64 +3,51 @@
 namespace Application\Catalog\Services;
 
 use Application\Catalog\Commands\CreateProductCommand;
-use Application\Catalog\DTO\ProductDTO;
-use Domain\Catalog\Repositories\ProductRepositoryInterface;
-use Domain\Catalog\Repositories\CategoryRepository;
-use Domain\Catalog\Repositories\BrandRepository;
 use App\Domain\Catalog\Entities\Product;
+use Domain\Catalog\Repositories\ProductRepositoryInterface;
+use Domain\Catalog\Repositories\CategoryRepository as CategoryRepositoryInterface;
+use Domain\Catalog\Repositories\BrandRepository as BrandRepositoryInterface;
+use Domain\Catalog\ValueObjects\ProductId;
+use Domain\Catalog\ValueObjects\CategoryId;
+use Domain\Catalog\ValueObjects\BrandId;
 use App\Domain\Catalog\ValueObjects\Price;
 use Domain\Shared\ValueObjects\Quantity;
-use Domain\Catalog\ValueObjects\ProductId;
-use Domain\Catalog\ValueObjects\CategoryId; // 👈 Import correcto
-use Domain\Catalog\ValueObjects\BrandId;    // 👈 Import correcto
 
 final class CreateProductService
 {
     public function __construct(
-        private ProductRepositoryInterface $products,
-        private CategoryRepository $categories,
-        private BrandRepository $brands
+        private ProductRepositoryInterface $productRepository,
+        private CategoryRepositoryInterface $categoryRepository,
+        private BrandRepositoryInterface $brandRepository
     ) {}
 
-    public function execute(CreateProductCommand $cmd): ProductDTO
+    public function execute(CreateProductCommand $cmd): Product
     {
-        // Validación de Application
-        if ($cmd->price < 0) {
-            throw new \InvalidArgumentException("Price cannot be negative");
+        if ($cmd->price <= 0) {
+            throw new \InvalidArgumentException("Price must be greater than zero.");
         }
 
-        // Mapear Price VO
-        $priceVo = Price::fromFloat($cmd->price, 'USD');
-
-        // Validar existencia de Category
-        if ($cmd->categoryId !== null) {
-            $cat = $this->categories->findById(new CategoryId($cmd->categoryId));
-            if (!$cat) {
-                throw new \RuntimeException("Category not found: {$cmd->categoryId}");
-            }
+        if (!$this->categoryRepository->findById(new CategoryId($cmd->categoryId))) {
+            throw new \InvalidArgumentException("Category does not exist.");
         }
 
-        // Validar existencia de Brand
-        if ($cmd->brandId !== null) {
-            $brand = $this->brands->findById(new BrandId($cmd->brandId));
-            if (!$brand) {
-                throw new \RuntimeException("Brand not found: {$cmd->brandId}");
-            }
+        if ($cmd->brandId && !$this->brandRepository->findById(new BrandId($cmd->brandId))) {
+            throw new \InvalidArgumentException("Brand does not exist.");
         }
 
-        // Crear entidad Product
         $product = new Product(
-            $cmd->productId ? new ProductId($cmd->productId) : ProductId::generate(),
+            ProductId::generate(),
             $cmd->name,
             $cmd->description,
-            $priceVo,
-            new Quantity($cmd->stock),
+            new Price($cmd->price),
+            new Quantity($cmd->stock ?? 0),
             new CategoryId($cmd->categoryId),
-            $cmd->brandId ? new BrandId($cmd->brandId) : null
+            $cmd->brandId ? new BrandId($cmd->brandId) : null,
+            $cmd->attributes ?? []
         );
 
-        $this->products->save($product);
+        $this->productRepository->save($product);
 
-        return ProductDTO::fromDomain($product);
+        return $product;
     }
 }

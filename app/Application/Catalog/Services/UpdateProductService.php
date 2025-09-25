@@ -3,25 +3,33 @@
 namespace Application\Catalog\Services;
 
 use Application\Catalog\Commands\UpdateProductCommand;
-use Application\Catalog\DTO\ProductDTO;
 use Domain\Catalog\Repositories\ProductRepositoryInterface;
+use Domain\Catalog\Repositories\CategoryRepository as CategoryRepositoryInterface;
+use Domain\Catalog\Repositories\BrandRepository as BrandRepositoryInterface;
+use Domain\Catalog\ValueObjects\ProductId;
+use Domain\Catalog\ValueObjects\CategoryId;
+use Domain\Catalog\ValueObjects\BrandId;
 use App\Domain\Catalog\ValueObjects\Price;
-use App\Domain\Catalog\Entities\Product;
 
 final class UpdateProductService
 {
-    public function __construct(private ProductRepositoryInterface $products) {}
+    public function __construct(
+        private ProductRepositoryInterface $productRepository,
+        private CategoryRepositoryInterface $categoryRepository,
+        private BrandRepositoryInterface $brandRepository
+    ) {}
 
-    public function execute(UpdateProductCommand $cmd): ProductDTO
+    public function execute(UpdateProductCommand $cmd): \App\Domain\Catalog\Entities\Product
     {
-        /** @var Product|null $product */
-        $product = $this->products->findById($cmd->productId);
+        $productId = new ProductId($cmd->productId);
+        $product   = $this->productRepository->findById($productId);
+
         if (!$product) {
-            throw new \RuntimeException("Product not found: {$cmd->productId}");
+            throw new \InvalidArgumentException("Producto no encontrado.");
         }
 
         if ($cmd->name !== null) {
-            $product->reName($cmd->name);
+            $product->rename($cmd->name);
         }
 
         if ($cmd->description !== null) {
@@ -29,18 +37,30 @@ final class UpdateProductService
         }
 
         if ($cmd->price !== null) {
-            $priceVo = Price::fromFloat($cmd->price, 'USD');
-            $product->changePrice($priceVo);
+            if ($cmd->price <= 0) {
+                throw new \InvalidArgumentException("El precio debe ser mayor a cero.");
+            }
+            $product->changePrice(new Price($cmd->price));
         }
 
-        if ($cmd->stock !== null) {
-            $product->resetStock($cmd->stock);
+        if ($cmd->categoryId !== null) {
+            $categoryId = new CategoryId($cmd->categoryId);
+            if (!$this->categoryRepository->findById($categoryId)) {
+                throw new \InvalidArgumentException("La categoría no existe.");
+            }
+            $product->changeCategory($categoryId);
         }
 
-        // TODO: atributos, categoría, marca, etc.
+        if ($cmd->brandId !== null) {
+            $brandId = new BrandId($cmd->brandId);
+            if (!$this->brandRepository->findById($brandId)) {
+                throw new \InvalidArgumentException("La marca no existe.");
+            }
+            $product->changeBrand($brandId);
+        }
 
-        $this->products->save($product);
+        $this->productRepository->save($product);
 
-        return ProductDTO::fromDomain($product);
+        return $product; // ✅ Devolver el producto actualizado
     }
 }

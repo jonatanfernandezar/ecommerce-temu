@@ -2,6 +2,9 @@
 
 namespace Application\Catalog\Commands;
 
+use Domain\Catalog\ValueObjects\BrandId;
+use Domain\Catalog\ValueObjects\CategoryId;
+
 final class CreateProductCommand
 {
     /**
@@ -14,8 +17,9 @@ final class CreateProductCommand
         public readonly string $description,
         public readonly float $price,     // unidades principales (ej. 19.99)
         public readonly int $stock,
-        public readonly ?string $categoryId = null,
-        public readonly ?string $brandId = null,
-        public readonly array $attributes = [] // ['color' => 'red', 'size' => 'M']
+        public readonly CategoryId $categoryId,
+        public readonly BrandId $brandId,
+        public readonly array $attributes = [], // ['color' => 'red', 'size' => 'M']
+        public readonly string $status // 'active', 'inactive', 'out_of_stock'
     ) {}
 }

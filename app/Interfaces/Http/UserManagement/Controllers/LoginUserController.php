@@ -5,6 +5,7 @@ namespace App\Interfaces\Http\UserManagement\Controllers;
 use Illuminate\Http\Request;
 use Application\UserManagement\Commands\LoginUserCommand;
 use Application\UserManagement\Services\LoginUserService;
+use Domain\UserManagement\Exceptions\UserDomainException;
 
 class LoginUserController
 {
@@ -12,13 +13,17 @@ class LoginUserController
 
     public function __invoke(Request $request)
     {
-        $loginData = $this->loginUserService->execute(
-            new LoginUserCommand(
-                email: $request->input('email'),
-                password: $request->input('password')
-            )
-        );
+        try {
+            $loginData = $this->loginUserService->execute(
+                new LoginUserCommand(
+                    email: $request->input('email'),
+                    password: $request->input('password')
+                )
+            );
 
-        return response()->json($loginData);
+            return response()->json($loginData, 200);
+        } catch (UserDomainException $e) {
+            return response()->json(['message' => $e->getMessage()], 401);
+        }
     }
 }

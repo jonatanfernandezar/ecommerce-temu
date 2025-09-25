@@ -14,11 +14,7 @@ class UserManagementServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        if ($this->app->environment('testing')) {
-            $this->app->bind(UserRepositoryInterface::class, UserRepositoryEloquent::class);
-        } else {
-            $this->app->bind(UserRepositoryInterface::class, PdoUserRepository::class);
-        }
+        $this->app->bind(UserRepositoryInterface::class, PdoUserRepository::class);
     }
 
     /**

@@ -3,7 +3,6 @@
 namespace App\Http;
 
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
-use App\Interfaces\Http\UserManagement\Middleware\JwtMiddleware;
 
 class Kernel extends HttpKernel
 {
@@ -29,10 +28,5 @@ class Kernel extends HttpKernel
         ],
     ];
 
-    /**
-     * Middleware individuales que se pueden usar en las rutas.
-     */
-    protected $routeMiddleware = [
-        'jwt.auth' => \App\Interfaces\Http\UserManagement\Middleware\JwtMiddleware::class,
-    ];
+    // 👇 Ya no necesitamos $middlewareAliases en Laravel 11+
 }

@@ -13,7 +13,7 @@ Route::prefix('users')->group(function () {
     Route::post('login', [LoginUserController::class, '__invoke']);
 
     // Rutas protegidas con JWT
-    Route::middleware('jwt.auth')->group(function () {
+    Route::middleware('jwt')->group(function () {
         // Perfil de usuario
         Route::get('profile', [UserProfileController::class, 'show']);
         Route::put('profile', [UserProfileController::class, 'update']);

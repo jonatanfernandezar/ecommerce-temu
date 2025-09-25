@@ -12,6 +12,7 @@ use Domain\UserManagement\ValueObjects\UserRole;
 use Domain\UserManagement\ValueObjects\Name;
 use Domain\UserManagement\ValueObjects\UserStatus;
 use Illuminate\Support\Facades\Log;
+use Domain\UserManagement\Exceptions\UserDomainException;
 
 final class RegisterUserService
 {
@@ -20,13 +21,19 @@ final class RegisterUserService
     public function execute(RegisterUserCommand $command): UserDTO
     {
         Log::info("▶️ Entrando en RegisterUserService::execute", (array) $command);
+        
+        // Verificar email único
+        if ($this->userRepository->findByEmail(new Email($command->email))) {
+            throw new UserDomainException("Email already exists");
+        }
+
         // Crear entidad de dominio
         $user = new User(
             null, // ID será asignado por la base de datos
             new Name($command->name),
             new Email($command->email),
             Password::fromPlain($command->password),
-            new UserRole($command->role),
+            UserRole::fromString($command->role),
             UserStatus::active()
         );
 

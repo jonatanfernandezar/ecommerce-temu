@@ -22,6 +22,7 @@ class Product
     /** @var array<string, mixed> */
     private array $attributes;
     private ProductStatus $status;
+    private ?string $sellerId;
     /**
      * @param array<string, mixed> $attributes
      */
@@ -35,12 +36,14 @@ class Product
         CategoryId $categoryId,
         ?BrandId $brandId = null,
         array $attributes = [],
-        ?ProductStatus $status = null
+        ?ProductStatus $status = null,
+        ?string $sellerId = null
     ) {
         if (empty($id) || empty($name) || empty($categoryId)) {
             throw new \InvalidArgumentException("ID, name and categoryId are required.");
         }
 
+        $this->sellerId = $sellerId ?? '';
         $this->id          = $id;
         $this->name        = $name;
         $this->description = $description;
@@ -151,5 +154,17 @@ class Product
     public function getBrandId(): ?BrandId
     {
         return $this->brandId;
+    }
+    public function getSellerId(): string
+    {
+        return $this->sellerId;
+    }
+    public function changeCategory(CategoryId $newCategoryId): void
+    {
+        $this->categoryId = $newCategoryId;
+    }
+    public function changeBrand(?BrandId $newBrandId): void
+    {
+        $this->brandId = $newBrandId;
     }
 }

@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php',
+        web: __DIR__ . '/../routes/web.php',
+        api: __DIR__ . '/../routes/api.php',
         then: function () {
             // Todas las rutas de módulos estarán bajo /api
             Route::prefix('api')
@@ -21,12 +21,20 @@ return Application::configure(basePath: dirname(__DIR__))
                     require base_path('routes/Catalog/catalog.php');
                 });
         },
-        commands: __DIR__.'/../routes/console.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Aliases personalizados
+        $middleware->alias([
+            'jwt' => \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
+            'role' => \App\Interfaces\Http\UserManagement\Middleware\RoleMiddleware::class,
+        ]);
     })
+    ->withProviders([
+        App\Providers\CatalogServiceProvider::class,
+    ])
+
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();

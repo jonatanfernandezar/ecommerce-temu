@@ -2,11 +2,10 @@
 
 namespace Application\Catalog\Services;
 
-use Application\Catalog\DTO\ProductDTO;
-use Application\Catalog\Commands\SearchProductsCommand;
 use Domain\Catalog\Repositories\ProductRepositoryInterface;
+use Application\Catalog\DTO\ProductDTO;
 
-final class SearchProductsService
+final class GetAllProductsService
 {
     public function __construct(
         private ProductRepositoryInterface $productRepository
@@ -15,9 +14,8 @@ final class SearchProductsService
     /**
      * @return ProductDTO[]
      */
-    public function execute(SearchProductsCommand $cmd): array
+    public function execute(): array
     {
-        // De momento usamos findAll, luego se usará un search con filtros/paginación
         $products = $this->productRepository->findAll();
 
         return array_map(
